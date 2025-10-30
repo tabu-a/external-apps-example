@@ -9,7 +9,8 @@
     },
     "name": {
       "description": "Custom name for the MongoDB replica set. Optional.",
-      "type": "string"
+      "type": "string",
+      "default": ""
     }
   }
 }

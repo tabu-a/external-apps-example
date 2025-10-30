@@ -1,3 +1,8 @@
+export NAME=mongodb-operator
+export NAMESPACE=external-$(NAME)
+
+include ../../../scripts/package.mk
+
 update:
 	rm -rf charts
 	helm repo add mongodb https://mongodb.github.io/helm-charts

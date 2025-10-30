@@ -27,7 +27,7 @@ spec:
     singular: mongodb
   release:
     chart:
-      name: ./apps/mongodb
+      name: ./packages/apps/mongodb
       sourceRef:
         kind: GitRepository
         name: external-apps
