@@ -3,4 +3,4 @@ kind: Namespace
 metadata:
   labels:
     cozystack.io/system: "true"
-  name: external-mongodb-operator
+  name: qosi

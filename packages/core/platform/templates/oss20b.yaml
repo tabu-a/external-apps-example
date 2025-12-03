@@ -1,0 +1,174 @@
+---
+apiVersion: ray.io/v1
+kind: RayService
+metadata:
+  name: gpt-oss-20b
+  namespace: doss
+spec:
+  serveConfigV2: |
+    applications: 
+    - import_path: ray.serve.llm:build_openai_app
+      name: gpt-oss-20b
+      route_prefix: "/"
+      args:
+        llm_configs:
+            - model_loading_config:
+                model_id: openai/gpt-oss-20b
+              runtime_env:
+                env_vars:
+                  VLLM_USE_V1: "1"
+                  RAY_CGRAPH_submit_timeout: "3000"
+                  RAY_CGRAPH_get_timeout: "3000"
+              engine_kwargs:
+                tensor_parallel_size: 1
+                pipeline_parallel_size: 1
+                gpu_memory_utilization: 0.92
+                dtype: auto
+                max_model_len: 131072
+                max_num_batched_tokens: 32768
+                enable_chunked_prefill: true
+                enable_prefix_caching: true
+  serveService:
+    metadata:
+      name: gpt-oss-20b-serve-svc
+      labels:
+        type: gpt-oss-20b
+    spec:
+      type: LoadBalancer
+      ports:
+      - port: 8000
+        targetPort: 8000
+        protocol: TCP
+        name: serve
+      selector:
+        ray.io/cluster: gpt-oss-20b
+  rayClusterConfig:
+    rayVersion: '2.47.1'
+    enableInTreeAutoscaling: true
+    headGroupSpec:
+      serviceType: ClusterIP
+      rayStartParams:
+        dashboard-host: '0.0.0.0'
+        num-cpus: '4'
+        block: 'true'
+      template:
+        spec:
+          containers:
+          - name: ray-head
+            image: anyscale/ray-llm:2.51.2-py311-cu128
+            resources:
+              limits:
+                cpu: "8"
+                memory: "16Gi"
+              requests:
+                cpu: "8"
+                memory: "16Gi"
+            lifecycle:
+              preStop:
+                exec:
+                  command: ["/bin/sh", "-c", "ray stop"]
+            ports:
+            - containerPort: 6379
+              name: gcs-server
+            - containerPort: 8265
+              name: dashboard
+            - containerPort: 10001
+              name: client
+            - containerPort: 8000
+              name: serve
+            volumeMounts:
+            - name: ray-logs
+              mountPath: /tmp/ray
+            env:
+            - name: RAY_LOG_TO_STDERR
+              value: "1"
+            - name: NVIDIA_VISIBLE_DEVICES
+              value: "none"
+            - name: RAY_CGRAPH_submit_timeout
+              value: "3000"
+            - name: RAY_CGRAPH_get_timeout
+              value: "3000"
+            - name: HF_HUB_OFFLINE
+              value: "1"
+            - name: TRANSFORMERS_OFFLINE
+              value: "1"
+          volumes:
+          - name: model-volume
+            hostPath:
+              path: /data/ray_data
+              type: Directory
+          - name: ray-logs
+            emptyDir: {}
+    workerGroupSpecs:
+    - replicas: 1
+      minReplicas: 1
+      maxReplicas: 2
+      groupName: gpu-workers
+      rayStartParams:
+        block: 'true'
+        num-gpus: '1'
+      template:
+        spec:
+          containers:
+          - name: ray-worker
+            image: anyscale/ray-llm:2.51.2-py311-cu128
+            resources:
+              limits:
+                cpu: "16"
+                memory: "128Gi"
+                nvidia.com/gpu: "8"
+              requests:
+                cpu: "16"
+                memory: "128Gi"
+                nvidia.com/gpu: "8"
+            readinessProbe:
+              exec:
+                command:
+                - bash
+                - -c
+                - "ray status"
+              initialDelaySeconds: 30
+              periodSeconds: 10
+              timeoutSeconds: 5
+              successThreshold: 1
+              failureThreshold: 10
+            lifecycle:
+              preStop:
+                exec:
+                  command: ["/bin/sh", "-c", "ray stop"]
+            volumeMounts:
+            - name: model-volume
+              mountPath: /data/ray_data
+              readOnly: false
+            - name: ray-logs
+              mountPath: /tmp/ray
+            env:
+            - name: HF_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: hf-token
+                  key: hf_token
+            - name: RAY_LOG_TO_STDERR
+              value: "1"
+            - name: RAY_CGRAPH_submit_timeout
+              value: "3000"
+            - name: RAY_CGRAPH_get_timeout
+              value: "3000"
+            - name: HF_HOME
+              value: "/data/ray_data/huggingface/"
+            - name: HF_HUB_OFFLINE
+              value: "0"
+            - name: TRANSFORMERS_OFFLINE
+              value: "0"
+          volumes:
+          - name: model-volume
+            persistentVolumeClaim:
+              claimName: oss20-pvc
+          - name: ray-logs
+            emptyDir: {}
+          tolerations:
+          - key: nvidia.com/gpu
+            operator: Exists
+            effect: NoSchedule
+          nodeSelector:
+            nvidia.com/gpu.present: "true"

@@ -3,19 +3,19 @@ apiVersion: source.toolkit.fluxcd.io/v1
 kind: GitRepository
 metadata:
   name: external-apps
-  namespace: cozy-public
+  namespace: qosi
 spec:
   interval: 1m0s
   ref:
     branch: main
   timeout: 60s
-  url: https://github.com/cozystack/external-apps-example.git
+  url: https://github.com/tabu-a/external-apps-example.git
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: external-apps
-  namespace: cozy-system
+  namespace: qosi
 spec:
   interval: 5m
   targetNamespace: cozy-system
