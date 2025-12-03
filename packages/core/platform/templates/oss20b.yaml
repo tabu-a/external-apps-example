@@ -3,7 +3,7 @@ apiVersion: ray.io/v1
 kind: RayService
 metadata:
   name: gpt-oss-20b
-  namespace: doss
+  namespace: qosi
 spec:
   serveConfigV2: |
     applications: 
