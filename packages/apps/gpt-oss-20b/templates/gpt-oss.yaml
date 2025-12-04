@@ -133,11 +133,11 @@ spec:
               limits:
                 cpu: "8"
                 memory: "24Gi"
-                nvidia.com/gpu: "1"
+                nvidia.com/GA102GL_A10: "1"
               requests:
                 cpu: "8"
                 memory: "24Gi"
-                nvidia.com/gpu: "1"
+                nvidia.com/GA102GL_A10: "1"
             readinessProbe:
               exec:
                 command:
