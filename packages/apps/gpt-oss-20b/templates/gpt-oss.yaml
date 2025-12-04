@@ -110,6 +110,12 @@ spec:
               type: Directory
           - name: ray-logs
             emptyDir: {}
+          tolerations:
+          - key: nvidia.com/gpu
+            operator: Exists
+            effect: NoSchedule
+          nodeSelector:
+            nvidia.com/gpu.present: "true"
     workerGroupSpecs:
     - replicas: 1
       minReplicas: 1
