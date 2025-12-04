@@ -131,13 +131,13 @@ spec:
             image: anyscale/ray-llm:2.51.2-py311-cu128
             resources:
               limits:
-                cpu: "16"
-                memory: "128Gi"
-                nvidia.com/gpu: "8"
+                cpu: "8"
+                memory: "24Gi"
+                nvidia.com/gpu: "1"
               requests:
-                cpu: "16"
-                memory: "128Gi"
-                nvidia.com/gpu: "8"
+                cpu: "8"
+                memory: "24Gi"
+                nvidia.com/gpu: "1"
             readinessProbe:
               exec:
                 command:
