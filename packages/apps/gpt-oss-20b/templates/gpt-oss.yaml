@@ -69,11 +69,11 @@ spec:
             image: anyscale/ray-llm:2.51.2-py311-cu128
             resources:
               limits:
-                cpu: "8"
-                memory: "16Gi"
+                cpu: "4"
+                memory: "4Gi"
               requests:
-                cpu: "8"
-                memory: "16Gi"
+                cpu: "4"
+                memory: "4Gi"
             lifecycle:
               preStop:
                 exec:

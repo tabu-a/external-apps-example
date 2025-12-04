@@ -3,6 +3,8 @@ kind: Namespace
 metadata:
   labels:
     cozystack.io/system: "true"
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/enforce-version: latest
   name: qosi
 ---
 apiVersion: source.toolkit.fluxcd.io/v1
@@ -44,7 +46,7 @@ spec:
   targetNamespace: cozy-system
   chart:
     spec:
-      chart: ./packages/apps
+      chart: ./packages/apps/gpt-oss-20b
       sourceRef:
         kind: GitRepository
         name: external-apps
