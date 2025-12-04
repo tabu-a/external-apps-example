@@ -17,7 +17,7 @@ metadata:
   name: external-apps
   namespace: qosi
 spec:
-  interval: 5m
+  interval: 1m
   targetNamespace: cozy-system
   chart:
     spec:
